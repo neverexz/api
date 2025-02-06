@@ -10,7 +10,7 @@ def load_config(filename):
             config[key] = value
     return config
 
-config = load_config("codes.txt")
+config = load_config("../codes.txt")
 
 app = FastAPI()
 
@@ -63,3 +63,7 @@ def create(product: Product):
 @app.get("/products/{pk}")
 def get(pk: str):
     return Product.get(pk)
+
+@app.delete("/products/{pk}")
+def delete(pk: str):
+    return Product.delete(pk)
