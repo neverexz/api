@@ -37,11 +37,15 @@ async def create_posts(post: Post):
     my_posts.append(post_dict)
     return {"data": my_posts}
 
+@app.get("/posts/latest")
+async def get_latest_post():
+    post = my_posts[len(my_posts)-1]
+    return {"latest_post": post}
+
 @app.get("/posts/{id}")
 async def get_post(id: int):
     print(id)
     return {f"post_{id}": find_post(id)}
-    
     
 
 if __name__ == "__main__":
