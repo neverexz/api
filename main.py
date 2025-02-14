@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel
 from random import randrange
@@ -43,9 +43,15 @@ async def get_latest_post():
     return {"latest_post": post}
 
 @app.get("/posts/{id}")
-async def get_post(id: int):
-    print(id)
-    return {f"post_{id}": find_post(id)}
+async def get_post(id: int, response: Response):
+    post = find_post(id)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail=f"Post id:{id} not found")
+        # also usable
+        # response.status_code = status.HTTP_404_NOT_FOUND
+        # return {"response_detail": f"Post id:{id} not found"}
+    return {f"post_{id}": post}
     
 
 if __name__ == "__main__":
