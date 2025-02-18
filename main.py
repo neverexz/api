@@ -14,6 +14,7 @@ class Post(BaseModel):
     published: bool = True
     rating: Optional[int] = None
 
+
 my_posts = []
 
 def find_post(id):
@@ -69,7 +70,16 @@ def delete_post(id: int):
                             detail=f"Post id:{id} not found")
     my_posts.pop(index)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-    
+
+@app.put("/posts/{id}")
+def update_post(id: int, post: Post):
+    index = find_index_post(id)
+    if index == -1:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail=f"Post id:{id} not found")
+    return {'message': "updated post"}
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
