@@ -77,7 +77,10 @@ def update_post(id: int, post: Post):
     if index == -1:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail=f"Post id:{id} not found")
-    return {'message': "updated post"}
+    post_dict = post.model_dump()
+    post_dict['id'] = id
+    my_posts[index] = post_dict
+    return {'data': post_dict}
 
 
 if __name__ == "__main__":
