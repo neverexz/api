@@ -82,7 +82,9 @@ def update_post(id: int, post: Post):
     my_posts[index] = post_dict
     return {'data': post_dict}
 
-
+# uvicorn app.main:app --reload
+# run with this command app. - folder name
+# main is the file name and :app is app = FastAPI()
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
