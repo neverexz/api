@@ -1,18 +1,21 @@
 from turtle import st
 from typing import Optional
+from annotated_types import T
 from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel
 from random import randrange
 import uvicorn
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import time
 
 app = FastAPI()
-
+    
 class Post(BaseModel):
     title: str
     content: str
     published: bool = True
-    rating: Optional[int] = None
 
 
 my_posts = []
@@ -29,6 +32,15 @@ def find_index_post(id):
             return i
     return -1
             
+while True:
+    try:
+        connection_bd = psycopg2.connect(host='localhost', database='petik', user='postgres', password='admin', cursor_factory=RealDictCursor)
+        cursor = connection_bd.cursor()
+        print("database connected")
+        break
+    except Exception as error:
+        print("Error: ", error)
+        time.sleep(3)
 
 @app.get("/")
 async def root():
@@ -36,8 +48,9 @@ async def root():
 
 @app.get("/posts")
 async def get_posts():
-    print(my_posts)
-    return my_posts
+    cursor.execute("""SELECT * FROM posts""")
+    posts = cursor.fetchall()
+    return {"data": posts}
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 async def create_posts(post: Post):
