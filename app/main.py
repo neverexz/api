@@ -41,7 +41,7 @@ while True:
     except Exception as error:
         print("Error: ", error)
         time.sleep(3)
-
+# метка
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
