@@ -41,7 +41,7 @@ while True:
     except Exception as error:
         print("Error: ", error)
         time.sleep(3)
-# что-то другое
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -54,9 +54,11 @@ async def get_posts():
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 async def create_posts(post: Post):
-    post_dict = post.model_dump()
-    post_dict['id'] = randrange(0, 1000000)
-    my_posts.append(post_dict)
+    # cursor.execute(f"""insert into posts (title, content, published) values ({post.title}, {post.content}, {post.published})""")
+    # небезопасно, возможны SQL-инъекции
+    cursor.execute("""insert into posts (title, content, published) values (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+    my_posts = cursor.fetchone()
+    connection_bd.commit()
     return {"data": my_posts}
 
 @app.get("/posts/latest")
@@ -66,14 +68,16 @@ async def get_latest_post():
 
 @app.get("/posts/{id}")
 async def get_post(id: int, response: Response):
-    post = find_post(id)
+                                                          # ожидает кортеж!
+    cursor.execute("""select * from posts where id=%s""", (id,))
+    post = cursor.fetchone()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail=f"Post id:{id} not found")
         # also usable
         # response.status_code = status.HTTP_404_NOT_FOUND
         # return {"response_detail": f"Post id:{id} not found"}
-    return {f"post_{id}": post}
+    return {"data": post}
     
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int):
