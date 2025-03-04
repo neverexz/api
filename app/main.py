@@ -63,7 +63,8 @@ async def create_posts(post: Post):
 
 @app.get("/posts/latest")
 async def get_latest_post():
-    post = my_posts[len(my_posts)-1]
+    cursor.execute("""SELECT * FROM posts order by created_at limit 1""")
+    post = cursor.fetchone()
     return {"latest_post": post}
 
 @app.get("/posts/{id}")
@@ -81,23 +82,24 @@ async def get_post(id: int, response: Response):
     
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int):
-    index = find_index_post(id)
-    if index == -1:
+    cursor.execute("""delete from posts where id=%s returning *""", (id,))
+    delete_post = cursor.fetchone()
+    if not delete_post:
+        print(delete_post)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail=f"Post id:{id} not found")
-    my_posts.pop(index)
+    connection_bd.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @app.put("/posts/{id}")
 def update_post(id: int, post: Post):
-    index = find_index_post(id)
-    if index == -1:
+    cursor.execute("""update posts set title=%s, content=%s, published=%s where id=%s returning *""", (post.title, post.content, post.published, id))
+    update_post = cursor.fetchone()
+    if not update_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail=f"Post id:{id} not found")
-    post_dict = post.model_dump()
-    post_dict['id'] = id
-    my_posts[index] = post_dict
-    return {'data': post_dict}
+    connection_bd.commit()
+    return {'data': update_post}
 
 # uvicorn app.main:app --reload
 # run with this command app. - folder name
