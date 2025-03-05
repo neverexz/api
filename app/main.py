@@ -1,17 +1,24 @@
-from turtle import st
-from typing import Optional
 from annotated_types import T
 from fastapi import FastAPI, Response, status, HTTPException
-from fastapi.params import Body
 from pydantic import BaseModel
-from random import randrange
 import uvicorn
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
+from . import model
+from .database import engine, sessionlocal
 
+
+model.Base.metadata.create_all(blind=engine)
 app = FastAPI()
-    
+
+def get_db():
+    db = sessionlocal()
+    try:
+        yield db
+    finally:
+        db.close 
+
 class Post(BaseModel):
     title: str
     content: str
